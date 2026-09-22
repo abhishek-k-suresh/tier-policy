@@ -1,0 +1,27 @@
+{
+  "_comment": "Tier Policy configuration. Save as .amp/tier-policy.json in the repository root. Delete this file to fall back to defaults.",
+
+  "_mode": "enforce = block and prompt by tier. observe = classify and log only, never block. Start in observe to see what would fire before switching on enforcement.",
+  "mode": "enforce",
+
+  "_context": "Escalation modifiers describing this repository. Each true value raises every action one tier, capped at T3. T4 is never reached by escalation.",
+  "context": {
+    "E1_regulatedData": false,
+    "E2_deploysToProduction": false,
+    "E3_publicFacing": false,
+    "E4_ingestsUntrustedContent": false,
+    "E5_auditObligation": false
+  },
+
+  "_overrides": "Per-rule tier overrides by taxonomy ID, e.g. { \"C2\": 2 } to downgrade dependency installs from approval to notify. Deviation from the baseline is recorded here so it is explicit and auditable rather than requiring a fork.",
+  "overrides": {},
+
+  "_redact": "Strip credential-shaped substrings from commands before writing them to the decision log.",
+  "redact": true,
+
+  "_strictDialect": "Apply only the detected shell dialect's patterns. Default false: detection is heuristic, and a wrong guess silently disables the other dialect's rules. Matching both risks visible false positives instead of invisible false negatives.",
+  "strictDialect": false,
+
+  "_logInputPreview": "Write the raw tool payload to the log. Diagnostic only; payloads may contain sensitive data.",
+  "logInputPreview": false
+}

@@ -1,0 +1,21 @@
+{
+  "version": 1,
+  "hooks": {
+    "preToolUse": [
+      {
+        "type": "command",
+        "bash": "node .github/hooks/tier-policy-hook.js pre",
+        "powershell": "node .github/hooks/tier-policy-hook.js pre",
+        "timeoutSec": 10
+      }
+    ],
+    "postToolUse": [
+      {
+        "type": "command",
+        "bash": "node .github/hooks/tier-policy-hook.js post",
+        "powershell": "node .github/hooks/tier-policy-hook.js post",
+        "timeoutSec": 10
+      }
+    ]
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "version": 1,
+  "hooks": {
+    "preToolUse": [
+      {
+        "type": "command",
+        "bash": "node /opt/tier-policy/tier-policy-hook.js pre",
+        "powershell": "node C:\\ProgramData\\TierPolicy\\tier-policy-hook.js pre",
+        "timeoutSec": 10
+      }
+    ]
+  }
+}

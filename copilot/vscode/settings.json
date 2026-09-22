@@ -1,0 +1,73 @@
+{
+  // Generated from the tier policy rule set. Do not hand-edit;
+  // change the rules and regenerate, so the two stay in step.
+  //
+  // true  = auto-approve
+  // false = require approval  (there is no "deny outright" state)
+
+  "chat.tools.terminal.autoApprove": {
+    // ---- Tier 1: Autonomous ----
+    "/^\\s*git\\s+(status|log|diff|show|blame|branch|remote|describe|rev-parse)\\b/": true, // D1  Read repository state
+    "/^\\s*(npm|pnpm|yarn)\\s+(test|run\\s+(test|lint|build|typecheck))\\b/": true, // B1  Run tests, linters, or build
+    "/^\\s*(pytest|ruff|eslint|tsc)\\b/": true,                        // B1  Run tests, linters, or build
+    "/^\\s*go\\s+(test|build|vet)\\b/": true,                          // B1  Run tests, linters, or build
+    "/^\\s*cargo\\s+(test|build|check|clippy)\\b/": true,              // B1  Run tests, linters, or build
+    "/^\\s*(dotnet|gradle|mvn)\\s+(test|build|verify)\\b/": true,      // B1  Run tests, linters, or build
+    "/^\\s*Invoke-Pester\\b/": true,                                   // B1  Run tests, linters, or build
+    "/^\\s*(cat|less|more|head|tail|ls|pwd|find|grep|rg|wc|file|stat|which|echo|date)\\b/": true, // A1s  Read-only inspection
+    "/^\\s*(Get-Content|gc|type|Get-ChildItem|gci|dir|Get-Location|Select-String|sls|Get-Item|Test-Path|Write-Output|Write-Host|Resolve-Path)\\b/": true, // A1s  Read-only inspection
+    // ---- Tier 2: Notify ----
+    "/^\\s*git\\s+commit\\b/": false,                                  // D4  Commit locally
+    "/^\\s*git\\s+push\\b/": false,                                    // D6  Push to a branch
+    "/^\\s*gh\\s+pr\\s+(create|edit|comment)\\b/": false,              // E2  Open or edit a pull request
+    "/(^|[\\s;|&])rm\\s/": false,                                      // A6  Delete a file
+    "/\\b(Remove-Item|ri|del|erase)\\b/": false,                       // A6  Delete a file
+    "/^\\s*(npm|pnpm|yarn)\\s+(update|upgrade|audit\\s+fix)\\b/": false, // C3  Update dependencies
+    "/\\bUpdate-Module\\b/": false,                                    // C3  Update dependencies
+    "/(>|>>)\\s*\\S|\\btee\\b/": false,                                // A4w  Write to a file via shell redirection
+    "/\\b(Out-File|Set-Content|Add-Content)\\b/": false,               // A4w  Write to a file via shell redirection
+    // ---- Tier 3: Approval ----
+    "/\\brm\\b[^;|&]*-[a-z]*[rRf]/": false,                            // A7  Recursive or forced delete
+    "/\\b(Remove-Item|ri|rd|rmdir)\\b[^;|&]*-(Recurse|Force)\\b/": false, // A7  Recursive or forced delete
+    "/\\b(npm|pnpm|yarn)\\s+(i|add|install)\\b|\\bpip3?\\s+install\\b|\\bcargo\\s+add\\b|\\bgo\\s+get\\b|\\bgem\\s+install\\b|\\b(apt|apt-get|brew)\\s+install\\b/": false, // C2  Add or install a dependency
+    "/\\b(Install-Module|Install-Package)\\b|\\b(choco|winget)\\s+install\\b/": false, // C2  Add or install a dependency
+    "/\\bgit\\s+(reset\\s+--hard|rebase|filter-branch)\\b|\\bgit\\s+commit\\b[^;|&]*--amend/": false, // D5  Rewrite local history
+    "/\\bgit\\s+push\\b[^;|&]*(--delete|\\s:\\w)/": false,             // D9  Delete a remote branch
+    "/\\bgit\\s+config\\b|\\.git[/\\\\]hooks[/\\\\]/": false,          // D11  Modify git configuration or hooks
+    "/\\b(curl|wget|nc|ncat|ssh|scp|rsync)\\b/": false,                // F4  Outbound network request
+    "/\\b(Invoke-WebRequest|iwr|Invoke-RestMethod|irm)\\b/": false,    // F4  Outbound network request
+    "/\\bgh\\s+(workflow\\s+run|run\\s+rerun)\\b/": false,             // I3  Trigger a pipeline or workflow
+    // ---- Tier 4: Prohibited (degrades to approval — see coverage report) ----
+    "/\\bgit\\s+push\\b.*(--force|--force-with-lease|\\s-f(\\s|$))/": false, // D8  Force push to a shared branch
+    "/\\bgit\\s+push\\b[^;|&]*\\b(main|master|develop|release)\\b/": false, // D7  Push to a protected branch
+    "/\\brm\\b[^;|&]*\\.git\\b|\\bgh\\s+repo\\s+delete\\b/": false,    // D10  Delete a repository
+    "/\\b(Remove-Item|ri)\\b[^;|&]*\\.git\\b/": false,                 // D10  Delete a repository
+    "/\\bgit\\s+commit\\b[^;|&]*--author/": false,                     // D13  Commit under another identity
+    "/(^|[\\s/'\"])\\.env(\\.|$|['\"\\s])|\\.pem\\b|\\bid_rsa\\b|[/\\\\]\\.ssh[/\\\\]|[/\\\\]\\.aws[/\\\\]|\\.netrc\\b/": false, // G2  Access a credential store or secret file
+    "/\\b(Get-Credential|ConvertTo-SecureString)\\b/": false,          // G2  Access a credential store or secret file
+    "/(^|[\\s;|&])(env|printenv)(\\s|$)/": false,                      // G1  Enumerate environment variables
+    "/\\bGet-ChildItem\\s+Env:|\\bdir\\s+Env:/": false,                // G1  Enumerate environment variables
+    "/(^|[\\s;|&])(sudo|doas)\\s|(^|[\\s;|&])su\\s+-/": false,         // B6  Run with elevated privileges
+    "/-Verb\\s+RunAs|\\bStart-Process\\b[^;|&]*RunAs/": false,         // B6  Run with elevated privileges
+    "/\\b(curl|wget)\\b[^|]*\\|\\s*(ba|z|d)?sh\\b/": false,            // B8  Execute remotely fetched code
+    "/\\b(iwr|irm|Invoke-WebRequest|Invoke-RestMethod)\\b[^|]*\\|\\s*(iex|Invoke-Expression)\\b|\\biex\\s*\\(/": false, // B8  Execute remotely fetched code
+    "/\\bnpm\\s+config\\s+set\\s+registry\\b|\\bpip\\s+config\\s+set\\b[^;|&]*index-url|\\byarn\\s+config\\s+set\\s+registry\\b/": false, // C7  Change package registry source
+    "/\\b(Register-PSRepository|Set-PSRepository)\\b/": false,         // C7  Change package registry source
+    "/\\b(drop\\s+(table|database|schema)|truncate\\s+table|delete\\s+from)\\b/": false, // H5  Destructive database operation
+    "/\\b(kubectl|helm|terraform\\s+apply|serverless\\s+deploy|eb\\s+deploy)\\b[^;|&]*\\b(prod|production)\\b/": false, // I6  Deploy to production
+    "/\\bterraform\\s+(apply|destroy)\\b|\\bpulumi\\s+up\\b|\\bcdk\\s+deploy\\b/": false, // J3  Apply infrastructure changes
+    "/\\baws\\s+iam\\b|\\bgcloud\\s+projects\\s+(add|remove)-iam\\b|\\baz\\s+role\\s+assignment\\b/": false, // J5  Modify identity or access policy
+    "/\\b(Set-Acl|Add-LocalGroupMember)\\b/": false,                   // J5  Modify identity or access policy
+    "/(>|>>|\\btee\\b|\\bsed\\s+-i\\b|\\brm\\b|\\bmv\\b)[^;|&]*(AGENTS?\\.md|CLAUDE\\.md|copilot-instructions\\.md|\\.vscode[/\\\\]settings\\.json)/": false, // K2  Modify agent configuration or instructions
+    "/\\b(Out-File|Set-Content|Add-Content|Remove-Item|Move-Item)\\b[^;|&]*(AGENTS?\\.md|copilot-instructions\\.md|settings\\.json)/": false, // K2  Modify agent configuration or instructions
+    "/\\b(rm|truncate|shred)\\b[^;|&]*\\.(log|jsonl|audit)\\b|\\bjournalctl\\b[^;|&]*--vacuum/": false, // L3  Tamper with logs or audit records
+    "/\\b(Remove-Item|Clear-Content)\\b[^;|&]*\\.(log|jsonl|audit)\\b|\\bClear-EventLog\\b/": false // L3  Tamper with logs or audit records
+  },
+
+  // Risk badges on confirmation prompts. Advisory, but free.
+  "chat.tools.riskAssessment.enabled": true,
+
+  // MUST remain false. Setting this to true disables the map above
+  // entirely, including every approval requirement in it.
+  "chat.tools.autoApprove": false
+}

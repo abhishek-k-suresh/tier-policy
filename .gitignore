@@ -1,0 +1,7 @@
+node_modules/
+*.jsonl
+coverage/
+.vite/
+.DS_Store
+Thumbs.db
+desktop.ini
